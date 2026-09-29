@@ -1,3 +1,5 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
 fastapi
 uvicorn[standard]
 python-multipart
@@ -7,3 +9,4 @@ pypdf
 sentence-transformers
 scikit-learn
 openai
+torch==2.6.0+cpu
