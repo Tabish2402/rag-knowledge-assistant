@@ -7,7 +7,8 @@ import Composer from "./components/Composer";
 import AnswerPanel from "./components/AnswerPanel";
 import EmptyState from "./components/EmptyState";
 
-const API_URL = "http://127.0.0.1:8000";
+const API_URL =
+  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 function App() {
   const [file, setFile] = useState(null);
