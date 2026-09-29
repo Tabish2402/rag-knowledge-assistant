@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
 import "./App.css";
+import { LogoMark } from "./components/Icons";
+import UploadZone from "./components/UploadZone";
+import DocumentLibrary from "./components/DocumentLibrary";
+import Composer from "./components/Composer";
+import AnswerPanel from "./components/AnswerPanel";
+import EmptyState from "./components/EmptyState";
 
 const API_URL = "http://127.0.0.1:8000";
 
@@ -18,16 +24,19 @@ function App() {
   const [selectedDocument, setSelectedDocument] = useState("");
 
   // Fetch all uploaded documents
+  const loadDocuments = async () => {
+    const response = await fetch(`${API_URL}/documents`);
+
+    if (!response.ok) {
+      throw new Error("Failed to load documents");
+    }
+
+    return response.json();
+  };
+
   const fetchDocuments = async () => {
     try {
-      const response = await fetch(`${API_URL}/documents`);
-
-      if (!response.ok) {
-        throw new Error("Failed to load documents");
-      }
-
-      const data = await response.json();
-      setDocuments(data);
+      setDocuments(await loadDocuments());
     } catch (error) {
       console.error("Error loading documents:", error);
     }
@@ -35,7 +44,11 @@ function App() {
 
   // Load documents when the application starts
   useEffect(() => {
-    fetchDocuments();
+    loadDocuments()
+      .then(setDocuments)
+      .catch((error) => {
+        console.error("Error loading documents:", error);
+      });
   }, []);
 
   // Upload a PDF
@@ -108,6 +121,17 @@ const askQuestion = async () => {
       throw new Error("Streaming is not supported by this response.");
     }
 
+    // Sources arrive as URL-encoded JSON in a response header
+    const sourcesHeader = response.headers.get("X-RAG-Sources");
+
+    if (sourcesHeader) {
+      try {
+        setSources(JSON.parse(decodeURIComponent(sourcesHeader)));
+      } catch (error) {
+        console.error("Error parsing sources:", error);
+      }
+    }
+
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
 
@@ -134,141 +158,59 @@ const askQuestion = async () => {
 
   return (
     <div className="app">
-      <header>
-        <h1>RAG Knowledge Assistant</h1>
+      <div className="backdrop" aria-hidden="true" />
 
-        <p>
-          Upload documents and ask questions about their contents.
-        </p>
-      </header>
-
-      <main>
-        {/* Upload Section */}
-        <section className="card">
-          <h2>Upload Document</h2>
-
-          <input
-            type="file"
-            accept=".pdf"
-            onChange={(event) => {
-              setFile(event.target.files[0]);
-            }}
-          />
-
-          <button
-            onClick={uploadDocument}
-            disabled={!file}
-          >
-            Upload PDF
-          </button>
-
-          {uploadStatus && (
-            <p className="status">
-              {uploadStatus}
-            </p>
-          )}
-        </section>
-
-        {/* Question Section */}
-        <section className="card">
-          <h2>Ask a Question</h2>
-
-          <textarea
-            placeholder="Ask something about your documents..."
-            value={question}
-            onChange={(event) => {
-              setQuestion(event.target.value);
-            }}
-          />
-
-          {/* Document Filter */}
-          <div className="document-selector">
-            <label htmlFor="document">
-              Search within document
-            </label>
-
-            <select
-              id="document"
-              value={selectedDocument}
-              onChange={(event) => {
-                setSelectedDocument(event.target.value);
-              }}
-            >
-              <option value="">
-                All documents
-              </option>
-
-              {documents
-                .filter(
-                  (document) =>
-                    document.status === "completed"
-                )
-                .map((document) => (
-                  <option
-                    key={document.id}
-                    value={document.id}
-                  >
-                    {document.filename}
-                  </option>
-                ))}
-            </select>
+      <aside className="sidebar">
+        <div className="brand">
+          <LogoMark />
+          <div>
+            <strong>Knowledge Assistant</strong>
+            <small>Hybrid RAG · pgvector</small>
           </div>
+        </div>
 
-          <button
-            onClick={askQuestion}
-            disabled={loading || !question.trim()}
-          >
-            {loading ? "Thinking..." : "Ask"}
-          </button>
-        </section>
+        <UploadZone
+          file={file}
+          onFileChange={setFile}
+          onUpload={uploadDocument}
+          status={uploadStatus}
+        />
 
-        {/* Answer Section */}
-        {answer && (
-          <section className="card">
-            <h2>Answer</h2>
+        <DocumentLibrary
+          documents={documents}
+          selectedDocument={selectedDocument}
+          onSelect={setSelectedDocument}
+        />
+      </aside>
 
-            <p className="answer">
-              {answer}
-            </p>
+      <main className="workspace">
+        <header className="hero">
+          <span className="eyebrow eyebrow-pill">
+            <span className="dot" /> Retrieval-augmented · cited answers
+          </span>
+          <h1>
+            Ask your documents <em>anything.</em>
+          </h1>
+          <p>
+            Semantic and keyword search, fused and reranked, so every answer
+            comes straight from your PDFs.
+          </p>
+        </header>
 
-            {/* Sources */}
-            {sources.length > 0 && (
-              <>
-                <h3>Sources</h3>
+        <Composer
+          question={question}
+          onQuestionChange={setQuestion}
+          onAsk={askQuestion}
+          loading={loading}
+          documents={documents}
+          selectedDocument={selectedDocument}
+          onSelectDocument={setSelectedDocument}
+        />
 
-                <ul>
-                  {sources.map((source, index) => (
-                    <li key={index}>
-                      <strong>
-                        [{source.citation}]{" "}
-                        {source.document}
-                      </strong>
-
-                      {" — Page "}
-                      {source.page}
-
-                      <div className="source-scores">
-                        <span>
-                          Vector:{" "}
-                          {source.vector_similarity}
-                        </span>
-
-                        <span>
-                          RRF:{" "}
-                          {source.rrf_score}
-                        </span>
-
-                        <span>
-                          Rerank:{" "}
-                          {source.rerank_score}
-                        </span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-          </section>
+        {answer || loading ? (
+          <AnswerPanel answer={answer} sources={sources} loading={loading} />
+        ) : (
+          <EmptyState onPick={setQuestion} />
         )}
       </main>
     </div>

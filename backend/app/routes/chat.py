@@ -1,3 +1,6 @@
+import json
+from urllib.parse import quote
+
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
@@ -5,6 +8,7 @@ from app.schemas.chat import ChatRequest
 from app.services.rag import (
     answer_question,
     build_rag_prompt,
+    build_sources,
 )
 from app.services.retrieval import hybrid_search
 from app.services.llm import generate_answer_stream
@@ -43,7 +47,13 @@ def chat_stream(request: ChatRequest):
         reranked_results,
     )
 
+    # Sources travel in a header so the streamed body stays plain answer text
+    sources = build_sources(reranked_results)
+
     return StreamingResponse(
         generate_answer_stream(prompt),
         media_type="text/plain",
+        headers={
+            "X-RAG-Sources": quote(json.dumps(sources)),
+        },
     )

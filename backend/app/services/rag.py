@@ -59,26 +59,7 @@ USER QUESTION:
 """
 
 
-def answer_question(
-    query: str,
-    top_k: int = 5,
-    similarity_threshold: float = 0.22,
-    document_id: int | None = None
-):
-    reranked_results = hybrid_search(
-        query=query,
-        top_k=top_k,
-        similarity_threshold=similarity_threshold,
-        document_id=document_id,
-    )
-
-    prompt = build_rag_prompt(
-        query,
-        reranked_results,
-    )
-
-    answer = generate_answer(prompt)
-
+def build_sources(reranked_results):
     sources = []
 
     for citation_number, item in enumerate(
@@ -114,6 +95,31 @@ def answer_question(
                 ),
             }
         )
+
+    return sources
+
+
+def answer_question(
+    query: str,
+    top_k: int = 5,
+    similarity_threshold: float = 0.22,
+    document_id: int | None = None
+):
+    reranked_results = hybrid_search(
+        query=query,
+        top_k=top_k,
+        similarity_threshold=similarity_threshold,
+        document_id=document_id,
+    )
+
+    prompt = build_rag_prompt(
+        query,
+        reranked_results,
+    )
+
+    answer = generate_answer(prompt)
+
+    sources = build_sources(reranked_results)
 
     return {
         "answer": answer,

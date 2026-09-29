@@ -1,15 +1,101 @@
 :root {
-  font-family: Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color: #1f2937;
-  background: #f5f7fa;
+  /* Dark (default) */
+  --bg: #08080f;
+  --bg-elev: rgba(22, 22, 36, 0.62);
+  --bg-solid: #12121e;
+  --bg-inset: rgba(255, 255, 255, 0.035);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --text: #ecebf5;
+  --text-muted: #9a99b3;
+  --text-faint: #6b6a85;
+
+  --accent-1: #8b5cf6;
+  --accent-2: #22d3ee;
+  --accent-3: #f472b6;
+  --accent-text: #c4b5fd;
+  --gradient: linear-gradient(120deg, var(--accent-1), var(--accent-2));
+
+  --success: #34d399;
+  --warning: #fbbf24;
+  --danger: #fb7185;
+
+  --shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 20px 50px -20px rgba(0, 0, 0, 0.7);
+  --glow: 0 0 0 1px rgba(139, 92, 246, 0.45), 0 10px 40px -10px rgba(139, 92, 246, 0.55);
+
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Instrument Serif", Georgia, serif;
+  --font-mono: "Geist Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+
+  color-scheme: dark;
+  font-family: var(--font-sans);
+  line-height: 1.55;
+  color: var(--text);
+  background: var(--bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f6f5fb;
+    --bg-elev: rgba(255, 255, 255, 0.72);
+    --bg-solid: #ffffff;
+    --bg-inset: rgba(20, 16, 50, 0.035);
+    --border: rgba(20, 16, 50, 0.08);
+    --border-strong: rgba(20, 16, 50, 0.16);
+    --text: #16142b;
+    --text-muted: #5d5b78;
+    --text-faint: #8c8aa6;
+    --accent-1: #7c3aed;
+    --accent-2: #0891b2;
+    --accent-text: #6d28d9;
+    --success: #059669;
+    --warning: #b45309;
+    --danger: #e11d48;
+    --shadow: 0 1px 2px rgba(20, 16, 50, 0.04), 0 18px 40px -22px rgba(40, 20, 90, 0.25);
+    --glow: 0 0 0 1px rgba(124, 58, 237, 0.4), 0 10px 36px -12px rgba(124, 58, 237, 0.4);
+    color-scheme: light;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+::selection {
+  background: rgba(139, 92, 246, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
