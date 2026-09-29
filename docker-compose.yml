@@ -1,0 +1,63 @@
+services:
+
+  db:
+    image: pgvector/pgvector:pg15-bookworm
+    container_name: rag-postgres
+
+    environment:
+      POSTGRES_DB: rag_knowledge
+      POSTGRES_USER: rag_user
+      POSTGRES_PASSWORD: rag_password
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - rag_pgdata:/var/lib/postgresql/data
+
+    restart: unless-stopped
+
+
+  backend:
+    build:
+      context: ./backend
+
+    container_name: rag-backend
+
+    env_file:
+    - ./backend/.env
+
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: rag_knowledge
+      DB_USER: rag_user
+      DB_PASSWORD: rag_password
+      
+
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      - db
+
+    restart: unless-stopped
+
+
+  frontend:
+    build:
+      context: ./frontend
+
+    container_name: rag-frontend
+
+    ports:
+      - "5173:80"
+
+    depends_on:
+      - backend
+
+    restart: unless-stopped
+
+
+volumes:
+  rag_pgdata:
